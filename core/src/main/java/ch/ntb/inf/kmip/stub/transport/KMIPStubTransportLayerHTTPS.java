@@ -70,19 +70,21 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
 	private String keyStorePassword;
 	private String alias = "ntb";
 
-	
+	static {
+        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
+                new javax.net.ssl.HostnameVerifier(){
+
+                    public boolean verify(String hostname,
+                                          javax.net.ssl.SSLSession sslSession) {
+                        return true;
+                    }
+                });
+    }
 	
 	public KMIPStubTransportLayerHTTPS() {
 		logger.info("KMIPStubTransportLayerHTTPS initialized...");
 		
-		javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-			    new javax.net.ssl.HostnameVerifier(){
-			 
-			        public boolean verify(String hostname,
-			                javax.net.ssl.SSLSession sslSession) {
-			        		return true;
-			        }
-			    });
+
 	}
     
     public ArrayList<Byte> send(ArrayList<Byte> al){
@@ -96,7 +98,7 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
             factory = initItAll(keyManagers, trustManagers);
            
             // execute Post
-            return executePost(url, al, factory);
+            return executePost(url, al);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -104,7 +106,8 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
     }
  
 
-	private ArrayList<Byte> executePost(String targetURL, ArrayList<Byte> al, SSLSocketFactory sslSocketFactory) throws IOException {
+	private ArrayList<Byte> executePost(String targetURL, ArrayList<Byte> al)
+            throws IOException {
         URLConnection connection = new URL(targetURL).openConnection();
         HttpsURLConnection httpsConnection = null;
         if (connection instanceof HttpsURLConnection) {
@@ -162,21 +165,22 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
 	}
 
 	private SSLSocketFactory initItAll(KeyManager[] keyManagers, TrustManager[] trustManagers)
-        throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext context = SSLContext.getInstance("TLSv1");
+            throws NoSuchAlgorithmException, KeyManagementException {
+        SSLContext context = SSLContext.getInstance("TLSv1.2");
         context.init(keyManagers, trustManagers, null);
         return context.getSocketFactory();
     }
  
-    private KeyManager[] createKeyManagers(String keyStoreFileName, String keyStorePassword, String alias) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    private KeyManager[] createKeyManagers(String keyStoreFileName, String keyStorePassword, String alias)
+			throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         java.io.InputStream inputStream = new java.io.FileInputStream(keyStoreFileName);
         //create keystore object, load it with keystorefile data
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(inputStream, keyStorePassword == null ? null : keyStorePassword.toCharArray());
- 
+
         KeyManager[] managers;
         if (alias != null) {
-        	managers = new KeyManager[] {new KMIPStubTransportLayerHTTPS().new AliasKeyManager(keyStore, alias, keyStorePassword)};
+        	managers = new KeyManager[] {new AliasKeyManager(keyStore, alias, keyStorePassword)};
         } else {
             //create keymanager factory and load the keystore object in it 
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -216,60 +220,6 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
 	public void setKeyStorePW(String property) {
 		keyStorePassword = property;
 	}
-    
-    
-    private class AliasKeyManager implements X509KeyManager {
- 
-        private KeyStore _ks;
-        private String _alias;
-        private String _password;
- 
-        public AliasKeyManager(KeyStore ks, String alias, String password) {
-            _ks = ks;
-            _alias = alias;
-            _password = password;
-        }
- 
-        public String chooseClientAlias(String[] str, Principal[] principal, Socket socket) {
-            return _alias;
-        }
- 
-        public String chooseServerAlias(String str, Principal[] principal, Socket socket) {
-            return _alias;
-        }
- 
-        public X509Certificate[] getCertificateChain(String alias) {
-            try {
-                java.security.cert.Certificate[] certificates = this._ks.getCertificateChain(alias);
-                if(certificates == null){
-                	throw new FileNotFoundException("no certificate found for alias:" + alias);
-                }
-                X509Certificate[] x509Certificates = new X509Certificate[certificates.length];
-                System.arraycopy(certificates, 0, x509Certificates, 0, certificates.length);
-                return x509Certificates;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
- 
-        public String[] getClientAliases(String str, Principal[] principal) {
-            return new String[] { _alias };
-        }
- 
-        public PrivateKey getPrivateKey(String alias) {
-            try {
-                return (PrivateKey) _ks.getKey(alias, _password == null ? null : _password.toCharArray());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
- 
-        public String[] getServerAliases(String str, Principal[] principal) {
-            return new String[] { _alias };
-        }
- 
-    }
+
 
 }

@@ -67,7 +67,7 @@ import ch.ntb.inf.kmip.utils.KMIPUtils;
  */
 public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLayerInterface{
 
-	private static final Logger logger = LoggerFactory.getLogger(KMIPStubTransportLayerHTTP.class);
+	private static final Logger logger = LoggerFactory.getLogger(KMIPStubTransportLayerHTTPSLocalHost.class);
 
 	static {
 	    // for localhost testing only
@@ -108,7 +108,8 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
         }
     }
  
-    private static String executePost(String targetURL, String urlParameters, SSLSocketFactory sslSocketFactory) throws IOException {
+    private static String executePost(String targetURL, String urlParameters, SSLSocketFactory sslSocketFactory)
+			throws IOException {
         URL url = new URL(targetURL);
         URLConnection connection = url.openConnection();
         HttpsURLConnection httpsConnection = null;
@@ -125,7 +126,7 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
         	httpsConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
         	httpsConnection.setRequestProperty("Content-Length","" + Integer.toString(urlParameters.getBytes().length));
         	httpsConnection.setRequestProperty("Content-Language", "en-US");
-        	httpsConnection.setRequestProperty("Cash-Control","no-cache");
+        	httpsConnection.setRequestProperty("Cache-Control","no-cache");
         	httpsConnection.setUseCaches(false);
         	httpsConnection.setDoInput(true);
         	httpsConnection.setDoOutput(true); 
@@ -159,14 +160,14 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
     }
  
     private static SSLSocketFactory initItAll(KeyManager[] keyManagers, TrustManager[] trustManagers)
-        throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext context = SSLContext.getInstance("TLS");
+        	throws NoSuchAlgorithmException, KeyManagementException {
+        SSLContext context = SSLContext.getInstance("TLSv1.2");
         context.init(keyManagers, trustManagers, null);
         return context.getSocketFactory();
     }
  
     private static KeyManager[] createKeyManagers(String keyStoreFileName, String keyStorePassword, String alias)
-        throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        	throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
         //create Inputstream to keystore file
         java.io.InputStream inputStream = new java.io.FileInputStream(keyStoreFileName);
         //create keystore object, load it with keystorefile data
@@ -175,7 +176,7 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
  
         KeyManager[] managers;
         if (alias != null) {
-        	managers = new KeyManager[] {new KMIPStubTransportLayerHTTPSLocalHost().new AliasKeyManager(keyStore, alias, keyStorePassword)};
+        	managers = new KeyManager[] {new AliasKeyManager(keyStore, alias, keyStorePassword)};
         } else {
             //create keymanager factory and load the keystore object in it 
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -226,60 +227,5 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
 		keyStorePassword = property;
 		trustStorePassword = property;
 	}
-    
-    
-    private class AliasKeyManager implements X509KeyManager {
- 
-        private KeyStore _ks;
-        private String _alias;
-        private String _password;
- 
-        public AliasKeyManager(KeyStore ks, String alias, String password) {
-            _ks = ks;
-            _alias = alias;
-            _password = password;
-        }
- 
-        public String chooseClientAlias(String[] str, Principal[] principal, Socket socket) {
-            return _alias;
-        }
- 
-        public String chooseServerAlias(String str, Principal[] principal, Socket socket) {
-            return _alias;
-        }
- 
-        public X509Certificate[] getCertificateChain(String alias) {
-            try {
-                java.security.cert.Certificate[] certificates = this._ks.getCertificateChain(alias);
-                if(certificates == null){
-                	throw new FileNotFoundException("no certificate found for alias:" + alias);
-                }
-                X509Certificate[] x509Certificates = new X509Certificate[certificates.length];
-                System.arraycopy(certificates, 0, x509Certificates, 0, certificates.length);
-                return x509Certificates;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
- 
-        public String[] getClientAliases(String str, Principal[] principal) {
-            return new String[] { _alias };
-        }
- 
-        public PrivateKey getPrivateKey(String alias) {
-            try {
-                return (PrivateKey) _ks.getKey(alias, _password == null ? null : _password.toCharArray());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
- 
-        public String[] getServerAliases(String str, Principal[] principal) {
-            return new String[] { _alias };
-        }
- 
-    }
 
 }
