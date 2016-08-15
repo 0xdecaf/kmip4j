@@ -45,7 +45,7 @@ public interface KMIPStubTransportLayerInterface {
 	 * @param al :     	the <code>ArrayList{@literal <}Byte{@literal >}</code> to be sent.
 	 * @return			<code>ArrayList{@literal <}Byte{@literal >}</code>: the response message.
 	 */
-	ArrayList<Byte> send(ArrayList<Byte> al);
+	ArrayList<Byte> send(ArrayList<Byte> encodedMessage);
 
 	/**
 	 * Sets the target host name to the defined value

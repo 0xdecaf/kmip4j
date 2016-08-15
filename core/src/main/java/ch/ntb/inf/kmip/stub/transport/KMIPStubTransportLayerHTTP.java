@@ -51,10 +51,10 @@ public class KMIPStubTransportLayerHTTP implements KMIPStubTransportLayerInterfa
 		logger.info("KMIPStubTransportLayerHTTP initialized...");
 	}
 	
-	public ArrayList<Byte> send(ArrayList<Byte> al) {
-		String kmipRequest = KMIPUtils.convertArrayListToHexString(al);
+	public ArrayList<Byte> send(ArrayList<Byte> encodedMessage) {
+		String kmipRequest = KMIPUtils.convertArrayListToHexString(encodedMessage);
 		try {
-			String parameter = "KMIPRequest="+URLEncoder.encode(kmipRequest,"UTF-8");	
+			String parameter = "KMIPRequest=" + URLEncoder.encode(kmipRequest,"UTF-8");
 			String responseString = executePost(url,parameter);
 			return KMIPUtils.convertHexStringToArrayList(responseString);
 		} catch (Exception e) {

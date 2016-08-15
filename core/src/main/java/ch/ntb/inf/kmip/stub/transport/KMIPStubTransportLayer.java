@@ -39,8 +39,12 @@ public class KMIPStubTransportLayer implements KMIPStubTransportLayerInterface {
 	
 	private static final Logger logger = LoggerFactory.getLogger(KMIPStubTransportLayer.class);
 	
-	private int PORT = 5696;						// default values
+	private int targetPort = 5696;						// default values
 	private String targetHostname = "localhost";	// default values
+
+	private String keyStoreFileName;
+	private String keyStorePassword;
+	private String alias = null;
 
 	private KMIPClientHandler clientHandler;
 	
@@ -53,12 +57,13 @@ public class KMIPStubTransportLayer implements KMIPStubTransportLayerInterface {
 	 * <code>ArrayList{@literal <}Byte{@literal >}</code> to a defined target and returns 
 	 * a corresponding KMIP-Response-Message.
 	 * 
-	 * @param al :     	the <code>ArrayList{@literal <}Byte{@literal >}</code> to be sent.
+	 * @param encodedMessage :     	the <code>ArrayList{@literal <}Byte{@literal >}</code> to be sent.
 	 * @return			<code>ArrayList{@literal <}Byte{@literal >}</code>: the response message.
 	 */
-	public ArrayList<Byte> send(ArrayList<Byte> al){
+	public ArrayList<Byte> send(ArrayList<Byte> encodedMessage){
 		logger.info("KLMSClient Request Thread: " + Thread.currentThread());
-		clientHandler = new KMIPClientHandler(targetHostname,PORT,al);
+		clientHandler = new KMIPClientHandler(targetHostname, targetPort, encodedMessage,
+				keyStoreFileName, keyStorePassword, alias);
 		/* Process the call-Method from the clientHandler asynchronous with FutureTask
 		 * A Future represents the result of an asynchronous computation
 		 */
@@ -87,23 +92,18 @@ public class KMIPStubTransportLayer implements KMIPStubTransportLayerInterface {
 	 */
 	public void setTargetHostname(String value) {
 		int split = value.indexOf(":");
-		this.targetHostname = value.substring(0,split);
-		this.PORT = Integer.parseInt(value.substring(split+1, value.length()));
-		logger.info("Connection to: "+targetHostname+":"+PORT);
+		this.targetHostname = value.substring(0, split);
+		this.targetPort = Integer.parseInt(value.substring(split+1, value.length()));
+		logger.info("Connection to: " + targetHostname + ":" + targetPort);
 	}
 
-	/**
-	 * Only for HTTPS support. HTTP: nothing to do here-> empty implementation.
-	 * 
-	 * @param property :     the key store location defined as <code>String</code> to be set. 
-	 */
-	public void setKeyStoreLocation(String property) {}
+	public void setKeyStoreLocation(String property) {
+        keyStoreFileName = property;
+    }
 
-	/**
-	 * Only for HTTPS support. HTTP: nothing to do here-> empty implementation.
-	 * 
-	 * @param property :     the key store password defined as <code>String</code> to be set.
-	 */
-	public void setKeyStorePW(String property) {}
+
+	public void setKeyStorePW(String property) {
+        keyStorePassword = property;
+    }
 	
 }

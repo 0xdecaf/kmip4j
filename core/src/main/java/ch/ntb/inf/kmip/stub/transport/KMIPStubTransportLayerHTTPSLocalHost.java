@@ -69,6 +69,14 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
 
 	private static final Logger logger = LoggerFactory.getLogger(KMIPStubTransportLayerHTTPSLocalHost.class);
 
+	private String url;
+	private String keyStoreFileName;
+	private String keyStorePassword;
+	private String alias = null;
+
+	private String trustStoreFileName;
+	private String trustStorePassword;
+
 	static {
 	    // for localhost testing only
 	    javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
@@ -79,12 +87,7 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
 	    });
 	}
 	
-	private String url;
-	private String keyStoreFileName;
-	private String keyStorePassword;
-	private String trustStoreFileName;
-	private String trustStorePassword;
-	private String alias = null;
+
 	
 	public KMIPStubTransportLayerHTTPSLocalHost() {
 		logger.info("KMIPStubTransportLayerHTTPS initialized...");
@@ -119,7 +122,7 @@ public class KMIPStubTransportLayerHTTPSLocalHost implements KMIPStubTransportLa
         else{
         	logger.warn("Connection is no HttpsURLConnection!");
         }
-        
+
         try{
         	httpsConnection.setSSLSocketFactory(sslSocketFactory);
         	httpsConnection.setRequestMethod("POST");

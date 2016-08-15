@@ -83,15 +83,13 @@ public class KMIPStubTransportLayerHTTPS implements KMIPStubTransportLayerInterf
 	
 	public KMIPStubTransportLayerHTTPS() {
 		logger.info("KMIPStubTransportLayerHTTPS initialized...");
-		
-
 	}
     
     public ArrayList<Byte> send(ArrayList<Byte> al){
     	try {
+
             // create key and trust managers
             KeyManager[] keyManagers = createKeyManagers(keyStoreFileName, keyStorePassword, alias);
-            
             TrustManager[] trustManagers = createTrustManagers();
             		
             // init context with managers data   
